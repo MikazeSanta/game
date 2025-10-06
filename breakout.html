@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ブロック崩しゲーム</title>
+    <title>ブロック崩しゲーム（加速・多ブロック版）</title>
     <style>
         body {
             display: flex;
@@ -45,7 +45,7 @@
 </head>
 <body>
     <div id="gameArea">
-        <h1>ブロック崩しゲーム</h1>
+        <h1>シンプルなブロック崩し</h1>
         <canvas id="gameCanvas" width="560" height="400"></canvas> 
         <div id="gameStatus">「ゲームスタート！」を押して開始</div>
         <button id="startButton">ゲームスタート！</button>
@@ -58,6 +58,7 @@
         const gameStatus = document.getElementById('gameStatus');
 
         let animationFrameId; 
+        let speedTimer; // ★加速用のタイマーを格納する変数★
         
         canvas.width = 560; 
         canvas.height = 400;
@@ -69,10 +70,15 @@
 
         // ボール
         const ballRadius = 8;
+        const INITIAL_SPEED = 3; // ★初期速度を定数化★
         let x = canvas.width / 2;
         let y = canvas.height - 30;
-        let dx = 3; 
-        let dy = -3; 
+        let dx = INITIAL_SPEED; 
+        let dy = -INITIAL_SPEED; 
+
+        // ★加速設定★
+        const speedInterval = 5000; // 5000ミリ秒 (5秒) ごとに加速
+        const speedIncreaseAmount = 0.5; // 速度の増加量
 
         // パドル
         const paddleHeight = 10;
@@ -82,22 +88,20 @@
         let leftPressed = false;
 
         // ブロックの設定
-        const brickRowCount = 5;
+        const brickRowCount = 8; // ★8行に増加★
         const brickColumnCount = 10;
         const brickWidth = 46; 
         const brickHeight = 15;
-        const brickPadding = 10;
-        const brickOffsetTop = 30;
+        const brickPadding = 5; // ★ブロックが増えたためパディングを調整★
+        const brickOffsetTop = 15; // ★開始位置を調整★
         const brickOffsetLeft = 5; 
         let bricks = [];
-        // ★ブロックの色を固定色に設定★
         const BRICK_COLOR = "#0095DD"; 
 
         function initBricks() {
             for (let c = 0; c < brickColumnCount; c++) {
                 bricks[c] = [];
                 for (let r = 0; r < brickRowCount; r++) {
-                    // status: 1 = 存在, 0 = 破壊済み
                     bricks[c][r] = { x: 0, y: 0, status: 1 };
                 }
             }
@@ -130,6 +134,7 @@
             for (let c = 0; c < brickColumnCount; c++) {
                 for (let r = 0; r < brickRowCount; r++) {
                     if (bricks[c][r].status === 1) {
+                        // ブロックが増えたためパディングを調整
                         const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
                         const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
                         
@@ -138,7 +143,7 @@
                         
                         ctx.beginPath();
                         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-                        ctx.fillStyle = BRICK_COLOR; // ★固定色を使用★
+                        ctx.fillStyle = BRICK_COLOR;
                         ctx.fill();
                         ctx.closePath();
                     }
@@ -167,6 +172,7 @@
                 gameOver = true;
                 gameStatus.textContent = "おめでとうございます！全てのブロックを破壊しました！";
                 startButton.textContent = "もう一度プレイ";
+                clearInterval(speedTimer); // ★タイマー停止★
                 cancelAnimationFrame(animationFrameId);
             }
         }
@@ -196,6 +202,7 @@
                     gameOver = true;
                     gameStatus.textContent = "ゲームオーバー！";
                     startButton.textContent = "もう一度プレイ";
+                    clearInterval(speedTimer); // ★タイマー停止★
                     cancelAnimationFrame(animationFrameId); 
                     return; 
                 }
@@ -226,10 +233,12 @@
                 animationFrameId = null; 
             }
             
+            clearInterval(speedTimer); // ★タイマー停止★
+            
             x = canvas.width / 2;
             y = canvas.height - 30;
-            dx = 3; 
-            dy = -3; 
+            dx = INITIAL_SPEED; // ★初期速度に戻す★
+            dy = -INITIAL_SPEED; // ★初期速度に戻す★
             
             paddleX = (canvas.width - paddleWidth) / 2;
 
@@ -244,6 +253,14 @@
             drawInitialState();
         }
 
+        // ★ボール加速のロジック★
+        function accelerateBall() {
+            // dxの符号（正負）を保持したまま絶対値を増やす
+            dx += dx > 0 ? speedIncreaseAmount : -speedIncreaseAmount;
+            dy += dy > 0 ? speedIncreaseAmount : -speedIncreaseAmount;
+            console.log("Speed increased! Current speed: " + Math.abs(dx));
+        }
+
         function startGame() {
             if (!gameStarted || gameOver || gameWon) {
                  resetGame(); 
@@ -251,6 +268,9 @@
                  gameStatus.textContent = "プレイ中...";
                  startButton.textContent = "リセット";
                  draw(); 
+                 
+                 // ★加速タイマーを開始★
+                 speedTimer = setInterval(accelerateBall, speedInterval);
             } else {
                  resetGame();
             }
