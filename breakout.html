@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ブロック崩しゲーム（最終確認版）</title>
+    <title>ブロック崩しゲーム（ブロック色統一版）</title>
     <style>
         body {
             display: flex;
@@ -90,13 +90,15 @@
         const brickOffsetTop = 30;
         const brickOffsetLeft = 5; 
         let bricks = [];
-        const brickColors = ["#FF5733", "#33FF57", "#3357FF", "#FF33FF", "#33FFFF"];
+        // ★ブロックの色を固定色に設定★
+        const BRICK_COLOR = "#0095DD"; 
 
         function initBricks() {
             for (let c = 0; c < brickColumnCount; c++) {
                 bricks[c] = [];
                 for (let r = 0; r < brickRowCount; r++) {
-                    bricks[c][r] = { x: 0, y: 0, status: 1, color: brickColors[r % brickColors.length] };
+                    // status: 1 = 存在, 0 = 破壊済み
+                    bricks[c][r] = { x: 0, y: 0, status: 1 };
                 }
             }
         }
@@ -107,8 +109,6 @@
              drawBall();
              drawPaddle();
         }
-
-        // --- 以下、描画・ロジック関数は省略（前回の修正から変更なし） ---
 
         function drawBall() {
             ctx.beginPath();
@@ -138,7 +138,7 @@
                         
                         ctx.beginPath();
                         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-                        ctx.fillStyle = bricks[c][r].color;
+                        ctx.fillStyle = BRICK_COLOR; // ★固定色を使用★
                         ctx.fill();
                         ctx.closePath();
                     }
@@ -245,26 +245,20 @@
         }
 
         function startGame() {
-            // ゲームがまだ始まっていない、またはゲームオーバー/勝利で停止している場合のみ、リセットして開始
             if (!gameStarted || gameOver || gameWon) {
-                 resetGame(); // 状態をリセット
-                 gameStarted = true; // ゲーム開始フラグを立てる
+                 resetGame(); 
+                 gameStarted = true; 
                  gameStatus.textContent = "プレイ中...";
                  startButton.textContent = "リセット";
-                 draw(); // ゲームループ開始
+                 draw(); 
             } else {
-                 // プレイ中に「リセット」が押された場合
                  resetGame();
             }
         }
 
-        // --- ★クリックイベントリスナーの修正★ ---
-        // 前回のコードでは startGame() のロジックが複雑で誤動作の原因となっていたため、
-        // イベントリスナーをシンプルにし、ロジックをstartGame()内に集約しました。
+        // イベントリスナー
+        startButton.addEventListener("click", startGame); 
 
-        startButton.addEventListener("click", startGame); // シンプルにstartGame()を呼び出すだけ
-
-        // キーボード操作・マウス操作のリスナーはそのまま
         document.addEventListener("keydown", (e) => {
             if (e.key === "Right" || e.key === "ArrowRight") { rightPressed = true; } 
             else if (e.key === "Left" || e.key === "ArrowLeft") { leftPressed = true; }
@@ -276,7 +270,6 @@
         }, false);
 
         document.addEventListener("mousemove", (e) => {
-             // ゲーム開始中のみマウス操作を有効にする
              if (gameStarted && !gameOver && !gameWon) {
                  let relativeX = e.clientX - canvas.offsetLeft;
                  if (relativeX > 0 && relativeX < canvas.width) {
@@ -288,7 +281,6 @@
         }, false);
 
 
-        // ページロード時に初期状態を表示
         resetGame(); 
     </script>
 </body>
