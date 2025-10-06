@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ブロック崩しゲーム</title>
+    <title>ブロック崩しゲーム（最終確認版）</title>
     <style>
         body {
             display: flex;
@@ -101,7 +101,6 @@
             }
         }
         
-        // ★初期状態の描画のみを行う関数を追加★
         function drawInitialState() {
              ctx.clearRect(0, 0, canvas.width, canvas.height);
              drawBricks();
@@ -109,7 +108,8 @@
              drawPaddle();
         }
 
-        // --- 以下、描画・ロジック関数は基本的に変更なし ---
+        // --- 以下、描画・ロジック関数は省略（前回の修正から変更なし） ---
+
         function drawBall() {
             ctx.beginPath();
             ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
@@ -162,7 +162,6 @@
                     }
                 }
             }
-            // 衝突判定ループ内で勝利判定を効率化
             if (totalBricks === 0) {
                 gameWon = true;
                 gameOver = true;
@@ -173,7 +172,6 @@
         }
 
         function draw() {
-            // ゲームオーバー/勝利時のチェック
             if (gameOver || gameWon) return; 
 
             ctx.clearRect(0, 0, canvas.width, canvas.height); 
@@ -199,7 +197,7 @@
                     gameStatus.textContent = "ゲームオーバー！";
                     startButton.textContent = "もう一度プレイ";
                     cancelAnimationFrame(animationFrameId); 
-                    return; // ゲームオーバーになったらすぐに終了
+                    return; 
                 }
             }
 
@@ -222,71 +220,75 @@
             animationFrameId = requestAnimationFrame(draw); 
         }
 
-        // --- ★初期化と開始のロジックを修正★ ---
-
         function resetGame() {
-            // 既存のアニメーションフレームがあればキャンセル
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
-                animationFrameId = null; // IDをクリア
+                animationFrameId = null; 
             }
             
-            // ★ボールの初期位置と速度をリセット★
             x = canvas.width / 2;
             y = canvas.height - 30;
             dx = 3; 
             dy = -3; 
             
-            // パドルの位置をリセット
             paddleX = (canvas.width - paddleWidth) / 2;
 
-            // ブロックの状態をリセット
             initBricks();
 
-            // ★ゲームの状態を完全にリセット★
             gameStarted = false;
             gameOver = false;
             gameWon = false;
             gameStatus.textContent = "「ゲームスタート！」を押して開始";
             startButton.textContent = "ゲームスタート！";
 
-            // 初期状態を描画
             drawInitialState();
         }
 
         function startGame() {
-            // ゲームが既に始まっているか、勝利・敗北している場合はリセット
-            if (gameStarted && !gameOver && !gameWon) {
-                 resetGame(); // プレイ中に「ゲームスタート/リセット」が押されたらリセット
-                 return;
+            // ゲームがまだ始まっていない、またはゲームオーバー/勝利で停止している場合のみ、リセットして開始
+            if (!gameStarted || gameOver || gameWon) {
+                 resetGame(); // 状態をリセット
+                 gameStarted = true; // ゲーム開始フラグを立てる
+                 gameStatus.textContent = "プレイ中...";
+                 startButton.textContent = "リセット";
+                 draw(); // ゲームループ開始
+            } else {
+                 // プレイ中に「リセット」が押された場合
+                 resetGame();
             }
-            
-            gameStarted = true;
-            gameOver = false;
-            gameWon = false;
-            gameStatus.textContent = "プレイ中...";
-            startButton.textContent = "リセット";
-            draw(); // ゲームループ開始
         }
 
-        // イベントリスナーの修正
-        document.addEventListener("keydown", keyDownHandler, false);
-        document.addEventListener("keyup", keyUpHandler, false);
+        // --- ★クリックイベントリスナーの修正★ ---
+        // 前回のコードでは startGame() のロジックが複雑で誤動作の原因となっていたため、
+        // イベントリスナーをシンプルにし、ロジックをstartGame()内に集約しました。
+
+        startButton.addEventListener("click", startGame); // シンプルにstartGame()を呼び出すだけ
+
+        // キーボード操作・マウス操作のリスナーはそのまま
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight") { rightPressed = true; } 
+            else if (e.key === "Left" || e.key === "ArrowLeft") { leftPressed = true; }
+        }, false);
         
-        // マウス操作時はゲームが開始されているかを確認
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight") { rightPressed = false; } 
+            else if (e.key === "Left" || e.key === "ArrowLeft") { leftPressed = false; }
+        }, false);
+
         document.addEventListener("mousemove", (e) => {
+             // ゲーム開始中のみマウス操作を有効にする
              if (gameStarted && !gameOver && !gameWon) {
-                 mouseMoveHandler(e);
+                 let relativeX = e.clientX - canvas.offsetLeft;
+                 if (relativeX > 0 && relativeX < canvas.width) {
+                     paddleX = relativeX - paddleWidth / 2;
+                     if (paddleX < 0) { paddleX = 0; } 
+                     else if (paddleX > canvas.width - paddleWidth) { paddleX = canvas.width - paddleWidth; }
+                 }
              }
         }, false);
 
 
-        startButton.addEventListener("click", () => {
-             // ボタンが押されたらstartGameを実行
-             startGame();
-        });
-
-        // ページロード時にリセット処理を実行し、初期画面を表示する
+        // ページロード時に初期状態を表示
         resetGame(); 
     </script>
 </body>
