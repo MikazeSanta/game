@@ -35,7 +35,8 @@
             margin-top: 30px;
             padding: 20px;
             border: 2px solid #ccc;
-            display: inline-block;
+            /* 中央に表示するためにブロック要素にする */
+            display: inline-block; 
             background-color: white;
             min-width: 300px;
             border-radius: 10px;
@@ -47,15 +48,15 @@
             margin-top: 15px;
         }
         #playAgainButton {
-            margin-top: 20px;
+            /* 結果エリアの下にマージンを設ける */
+            margin-top: 20px; 
             padding: 10px 20px;
             font-size: 18px;
             cursor: pointer;
-            background-color: #f44336; /* 赤色で目立つように */
+            background-color: #f44336; 
             color: white;
             border: none;
             border-radius: 5px;
-            /* 最初は非表示 */
             display: none; 
         }
         #playAgainButton:hover {
@@ -82,14 +83,10 @@
     <button id="playAgainButton">もう一度勝負！</button>
 
     <script>
-        // 手の配列 (0:グー, 1:チョキ, 2:パー)
         const HANDS = [' グー', ' チョキ', ' パー'];
-
         const playerChoiceDisplay = document.getElementById('player-choice');
         const computerChoiceDisplay = document.getElementById('computer-choice');
         const messageDisplay = document.getElementById('message');
-        
-        // 新しく取得したボタン
         const playAgainButton = document.getElementById('playAgainButton'); 
 
         /**
@@ -99,7 +96,7 @@
             playerChoiceDisplay.textContent = '？';
             computerChoiceDisplay.textContent = '？';
             messageDisplay.textContent = 'ボタンを押して勝負しよう！';
-            messageDisplay.style.color = '#333'; // メッセージの色を初期化
+            messageDisplay.style.color = '#333'; 
             playAgainButton.style.display = 'none'; // ボタンを非表示に戻す
         }
 
@@ -108,7 +105,7 @@
 
 
         function playGame(playerHand) {
-            // プレイするたびに「もう一度」ボタンを非表示に戻す
+            // 勝負中はボタンを非表示に戻す（続けてじゃんけんボタンを押した時のため）
             playAgainButton.style.display = 'none'; 
             
             // 1. コンピューターの手をランダムに決定 (0, 1, または 2)
@@ -117,22 +114,18 @@
             // 2. 結果を判定
             let resultMessage = '';
 
-            // 引き分け
+            // 判定ロジックは変更なし
             if (playerHand === computerHand) {
                 resultMessage = 'あいこ！ もう一度！';
                 messageDisplay.style.color = '#555';
-            }
-            // 勝ちパターン
-            else if (
-                (playerHand === 0 && computerHand === 1) || // グー vs チョキ
-                (playerHand === 1 && computerHand === 2) || // チョキ vs パー
-                (playerHand === 2 && computerHand === 0)    // パー vs グー
+            } else if (
+                (playerHand === 0 && computerHand === 1) || 
+                (playerHand === 1 && computerHand === 2) || 
+                (playerHand === 2 && computerHand === 0)    
             ) {
                 resultMessage = 'あなたの勝ち！';
                 messageDisplay.style.color = 'green';
-            }
-            // 負けパターン
-            else {
+            } else {
                 resultMessage = 'コンピューターの勝ち...';
                 messageDisplay.style.color = 'red';
             }
