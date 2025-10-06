@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ブロック崩しゲーム（ブロック配置バランス最終版）</title>
+    <title>ブロック崩しゲーム</title>
     <style>
         body {
             display: flex;
@@ -45,7 +45,7 @@
 </head>
 <body>
     <div id="gameArea">
-        <h1>シンプルなブロック崩し</h1>
+        <h1>ブロック崩しゲーム</h1>
         <canvas id="gameCanvas" width="560" height="400"></canvas> 
         <div id="gameStatus">「ゲームスタート！」を押して開始</div>
         <button id="startButton">ゲームスタート！</button>
@@ -76,9 +76,9 @@
         let dx = INITIAL_SPEED; 
         let dy = -INITIAL_SPEED; 
 
-        // 加速設定
-        const speedInterval = 5000; 
-        const speedIncreaseAmount = 0.5; 
+        // ★加速設定★
+        const speedInterval = 5000; // 5秒ごとに加速
+        const speedIncreaseAmount = 0.5; // 速度の増加量
 
         // パドル
         const paddleHeight = 10;
@@ -87,14 +87,14 @@
         let rightPressed = false;
         let leftPressed = false;
 
-        // ★ブロック設定の修正★
+        // ブロックの設定
         const brickRowCount = 8; 
         const brickColumnCount = 10;
-        const brickWidth = 48; // 46 -> 48 に変更
+        const brickWidth = 46; 
         const brickHeight = 15;
-        const brickPadding = 8; // 5 -> 8 に変更
+        const brickPadding = 5; 
         const brickOffsetTop = 15; 
-        const brickOffsetLeft = 4; // 5 -> 4 に変更
+        const brickOffsetLeft = 5; 
         let bricks = [];
         const BRICK_COLOR = "#0095DD"; 
 
@@ -109,6 +109,7 @@
         
         function drawInitialState() {
              ctx.clearRect(0, 0, canvas.width, canvas.height);
+             initBricks(); // 毎回initBricksを呼び出し、ブロックをリセット
              drawBricks();
              drawBall();
              drawPaddle();
@@ -134,7 +135,6 @@
             for (let c = 0; c < brickColumnCount; c++) {
                 for (let r = 0; r < brickRowCount; r++) {
                     if (bricks[c][r].status === 1) {
-                        // ★修正した設定値を使って位置を計算★
                         const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
                         const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
                         
@@ -251,13 +251,18 @@
             drawInitialState();
         }
 
+        // ★ボール加速のロジックを修正★
         function accelerateBall() {
+            // 現在の速度の絶対値を取得し、増加量を加算
             let currentSpeed = Math.abs(dx);
             let newSpeed = currentSpeed + speedIncreaseAmount;
             
             // 進行方向（符号）を維持しつつ、新しい速度を適用
+            // Math.sign() は、正なら1、負なら-1、0なら0を返す
             dx = Math.sign(dx) * newSpeed;
             dy = Math.sign(dy) * newSpeed;
+            
+            console.log("Speed increased! Current speed: " + newSpeed);
         }
 
         function startGame() {
