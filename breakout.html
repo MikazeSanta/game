@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ブロック崩しゲーム（加速・多ブロック版）</title>
+    <title>ブロック崩しゲーム（最終速度修正版）</title>
     <style>
         body {
             display: flex;
@@ -58,7 +58,7 @@
         const gameStatus = document.getElementById('gameStatus');
 
         let animationFrameId; 
-        let speedTimer; // ★加速用のタイマーを格納する変数★
+        let speedTimer; 
         
         canvas.width = 560; 
         canvas.height = 400;
@@ -70,14 +70,14 @@
 
         // ボール
         const ballRadius = 8;
-        const INITIAL_SPEED = 3; // ★初期速度を定数化★
+        const INITIAL_SPEED = 3; 
         let x = canvas.width / 2;
         let y = canvas.height - 30;
         let dx = INITIAL_SPEED; 
         let dy = -INITIAL_SPEED; 
 
         // ★加速設定★
-        const speedInterval = 5000; // 5000ミリ秒 (5秒) ごとに加速
+        const speedInterval = 5000; // 5秒ごとに加速
         const speedIncreaseAmount = 0.5; // 速度の増加量
 
         // パドル
@@ -88,12 +88,12 @@
         let leftPressed = false;
 
         // ブロックの設定
-        const brickRowCount = 8; // ★8行に増加★
+        const brickRowCount = 8; 
         const brickColumnCount = 10;
         const brickWidth = 46; 
         const brickHeight = 15;
-        const brickPadding = 5; // ★ブロックが増えたためパディングを調整★
-        const brickOffsetTop = 15; // ★開始位置を調整★
+        const brickPadding = 5; 
+        const brickOffsetTop = 15; 
         const brickOffsetLeft = 5; 
         let bricks = [];
         const BRICK_COLOR = "#0095DD"; 
@@ -109,6 +109,7 @@
         
         function drawInitialState() {
              ctx.clearRect(0, 0, canvas.width, canvas.height);
+             initBricks(); // 毎回initBricksを呼び出し、ブロックをリセット
              drawBricks();
              drawBall();
              drawPaddle();
@@ -134,7 +135,6 @@
             for (let c = 0; c < brickColumnCount; c++) {
                 for (let r = 0; r < brickRowCount; r++) {
                     if (bricks[c][r].status === 1) {
-                        // ブロックが増えたためパディングを調整
                         const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
                         const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
                         
@@ -172,7 +172,7 @@
                 gameOver = true;
                 gameStatus.textContent = "おめでとうございます！全てのブロックを破壊しました！";
                 startButton.textContent = "もう一度プレイ";
-                clearInterval(speedTimer); // ★タイマー停止★
+                clearInterval(speedTimer); 
                 cancelAnimationFrame(animationFrameId);
             }
         }
@@ -202,7 +202,7 @@
                     gameOver = true;
                     gameStatus.textContent = "ゲームオーバー！";
                     startButton.textContent = "もう一度プレイ";
-                    clearInterval(speedTimer); // ★タイマー停止★
+                    clearInterval(speedTimer); 
                     cancelAnimationFrame(animationFrameId); 
                     return; 
                 }
@@ -233,16 +233,14 @@
                 animationFrameId = null; 
             }
             
-            clearInterval(speedTimer); // ★タイマー停止★
+            clearInterval(speedTimer); 
             
             x = canvas.width / 2;
             y = canvas.height - 30;
-            dx = INITIAL_SPEED; // ★初期速度に戻す★
-            dy = -INITIAL_SPEED; // ★初期速度に戻す★
+            dx = INITIAL_SPEED; 
+            dy = -INITIAL_SPEED; 
             
             paddleX = (canvas.width - paddleWidth) / 2;
-
-            initBricks();
 
             gameStarted = false;
             gameOver = false;
@@ -253,12 +251,18 @@
             drawInitialState();
         }
 
-        // ★ボール加速のロジック★
+        // ★ボール加速のロジックを修正★
         function accelerateBall() {
-            // dxの符号（正負）を保持したまま絶対値を増やす
-            dx += dx > 0 ? speedIncreaseAmount : -speedIncreaseAmount;
-            dy += dy > 0 ? speedIncreaseAmount : -speedIncreaseAmount;
-            console.log("Speed increased! Current speed: " + Math.abs(dx));
+            // 現在の速度の絶対値を取得し、増加量を加算
+            let currentSpeed = Math.abs(dx);
+            let newSpeed = currentSpeed + speedIncreaseAmount;
+            
+            // 進行方向（符号）を維持しつつ、新しい速度を適用
+            // Math.sign() は、正なら1、負なら-1、0なら0を返す
+            dx = Math.sign(dx) * newSpeed;
+            dy = Math.sign(dy) * newSpeed;
+            
+            console.log("Speed increased! Current speed: " + newSpeed);
         }
 
         function startGame() {
@@ -269,7 +273,6 @@
                  startButton.textContent = "リセット";
                  draw(); 
                  
-                 // ★加速タイマーを開始★
                  speedTimer = setInterval(accelerateBall, speedInterval);
             } else {
                  resetGame();
@@ -302,6 +305,9 @@
 
 
         resetGame(); 
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
